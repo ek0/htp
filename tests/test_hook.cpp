@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cstdio>
 
+#include <Windows.h>
+
 #define NBDEBUG
 
 uint64_t TargetFunction1(uint64_t arg)
@@ -79,6 +81,24 @@ void PostHook(HTPContext* ctx)
 #endif
 }
 
+void GetModuleHandleHook(HTPContext* ctx)
+{
+#ifdef _M_X64
+    printf("Module: %s\n", (char*)ctx->rcx);
+#elif _M_IX86
+    printf("Module: %s\n", (char*)(*(uint32_t*)(ctx->esp + 0x04)));
+#endif
+}
+
+void GetModuleHandlePostHook(HTPContext* ctx)
+{
+#ifdef _M_X64
+    printf("Handle value: %#llx\n", ctx->rax);
+#elif defined(_M_IX86)
+    printf("Handle value: %#x\n", ctx->eax);
+#endif
+}
+
 int main(int argc, char** argv)
 {
     HTPHandle handle;
@@ -135,5 +155,11 @@ int main(int argc, char** argv)
     assert(SetupInlineHook(&handle, (uintptr_t)TargetFunction1, NewFunction, PostHook));
     for(size_t i = 0; i < 10000; ++i)
         assert(TargetFunction0(4) == 10);
+
+    puts("SetupInlineHook API\n");
+    SetupInlineHook(&handle, "kernel32.dll", "GetModuleHandleA", GetModuleHandleHook, GetModuleHandlePostHook);
+    HMODULE module = GetModuleHandleA("kernel32");
+    printf("Module: %#p\n", module);
+
     return 0;
 }

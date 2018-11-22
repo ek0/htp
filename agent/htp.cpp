@@ -17,8 +17,7 @@ bool HTPInit(HTPHandle* handle)
     handle->agent_base = (uintptr_t)module_base;
     handle->number_of_hooks = 0;
 #ifdef _M_X64
-    handle->relay_base = 0;
-    handle->number_of_relays = 0;
+    handle->relay_pages = std::unordered_map<uintptr_t, size_t>();
     ZydisDecoderInit(&handle->decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
 #else
     ZydisDecoderInit(&handle->decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_ADDRESS_WIDTH_32);

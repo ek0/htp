@@ -167,6 +167,51 @@ HTPRelay* GetNextAvailableRelayEntry(uintptr_t relay_base)
     }
     return relay;
 }
+
+/**
+ *  Find the closest relay page allocated for a given address.
+ */
+uintptr_t FindNearestAvailableRelayPage(HTPHandle* handle, uintptr_t target_address)
+{
+    std::unordered_map<uintptr_t, size_t>::const_iterator it;
+    for(it = handle->relay_pages.begin();
+        it != handle->relay_pages.end();
+        it++)
+    {
+        if(it->first < target_address &&
+           (target_address - it->second) < 0x7FFFFFFF)
+        {
+            if(it->second < MAX_RELAY_NUMBER)
+                return it->first;
+        }
+    }
+    return NULL;
+}
+
+// TODO: Optimize these three function (find and increment) as we are repeating the loop.
+bool IncrementRelayCount(HTPHandle* handle, uintptr_t relay_page)
+{
+    std::unordered_map<uintptr_t, size_t>::iterator it;
+    it = handle->relay_pages.find(relay_page);
+    if(it != handle->relay_pages.end())
+    {
+        it->second++;
+        return true;
+    }
+    return false;
+}
+
+bool DecrementRelayCount(HTPHandle* handle, uintptr_t relay_page)
+{
+    std::unordered_map<uintptr_t, size_t>::iterator it;
+    it = handle->relay_pages.find(relay_page);
+    if(it != handle->relay_pages.end())
+    {
+        it->second--;
+        return true;
+    }
+    return false;
+}
 #endif
 
 /**
@@ -225,35 +270,30 @@ bool SetupInlineHook(HTPHandle *handle, uintptr_t target_address, HTPHookProc ho
         target_address = next_address;
     }
 #if _M_X64
-    // If 64bits, checking if relay has been allocated
-    if(handle->relay_base == NULL)
+    // If 64bits, checking if relay page has been allocated within range.
+    uintptr_t relay_base = NULL;
+    relay_base = FindNearestAvailableRelayPage(handle, target_address);
+    if(relay_base == NULL) // No relay found
     {
         // Trying to allocate within 2GB of the module.
-        // TODO: Currently we only support up to 128 entries.
-        //       We need to implement bottom up reallocation.
-        //       There's still a risk where a new page
-        //       would be allocated in between
-        handle->relay_base = FindFreePage(target_address);
-    }
-    // Did we reach maximum the maximum relay number?
-    // Did we successfully allocate memory for the relay array?
-    if (handle->relay_base == NULL || handle->number_of_relays >= MAX_RELAY_NUMBER)
-    {
-        // Failed at allocating memory within 2GB for the relay.
-        // Copying the relay code at the function_entry.
-        prologue_size = 14; // jmp rip; 0x4142434445464748
-        relay = (HTPRelay*)target_address;
-        hook->relay_address = NULL; // No relay, directly jumping to the trampoline
-        using_relay = false;
-        //free(hook); FreeTrampoline(trampoline);
-        //return false;
-    }
-    else
-    {
-        // Allocation successful, using relative jump
-        prologue_size = 5; // jmp rel
-        relay = GetNextAvailableRelayEntry(handle->relay_base);
-        using_relay = true;
+        // Or the relay array is full, allocating a new page closest to target address
+        relay_base = FindFreePage(target_address);
+        if(relay_base != NULL)
+        {
+            handle->relay_pages.insert(std::make_pair(relay_base, 0));
+            prologue_size = 5; // jmp rel
+            relay = GetNextAvailableRelayEntry(relay_base);
+            using_relay = true;
+        }
+        else
+        {
+            // Failed allocating the relay.
+            // Copying the relay code at the function_entry.
+            using_relay = false;
+            hook->relay_address = NULL;
+            relay = (HTPRelay*)target_address;
+            prologue_size = 14;
+        }
     }
 #endif
     while(hook_space < prologue_size)
@@ -275,7 +315,12 @@ bool SetupInlineHook(HTPHandle *handle, uintptr_t target_address, HTPHookProc ho
     // Setting up the hook prologue, the relay and the trampoline with the right addresses.
     memcpy(relay->prologue.opcodes, "\xFF\x25\x00\x00\x00\x00", 6);
     relay->prologue.trampoline_address = (uintptr_t)trampoline;
-    handle->number_of_relays++;
+    if(!IncrementRelayCount(handle, relay_base))
+    {
+        DBGMSG("Error increment relay count for relay page: %p\n", relay_base);
+        free(hook); FreeTrampoline(trampoline);
+        return false;
+    }
     // If we successfully allocated a relay, use it, otherwise we already copied
     // the relay prologue to the function entry
     if(using_relay)
@@ -283,7 +328,8 @@ bool SetupInlineHook(HTPHandle *handle, uintptr_t target_address, HTPHookProc ho
         prologue = (HTPHookPrologue*)target_address;
         prologue->opcode = 0xe9; // jmp rel
         prologue->offset = (uint32_t)((uintptr_t)relay - target_address - 5);
-        hook->relay_address = (uintptr_t)relay; // successfully using a relay 
+        hook->relay_address = (uintptr_t)relay; // successfully using a relay
+        hook->relay_page = relay_base;
         relay->allocated = 0x1;
     }
 #else // _M_IX32
@@ -332,7 +378,11 @@ bool RemoveInlineHookInternal(HTPHandle* handle, HTPHook* hook_entry)
     {
         relay->prologue.trampoline_address = 0x0;
         relay->allocated = 0x0;
-        handle->number_of_relays--;
+        if(!DecrementRelayCount(handle, hook_entry->relay_page))
+        {
+            DBGMSG("Error decrementing relay count\n");
+            return false;
+        }
     }
 #endif
     // Freeing the trampoline
@@ -392,8 +442,14 @@ bool RemoveAllInlineHooks(HTPHandle* handle)
         }
     }
 #ifdef _M_X64
-    // Deallocating relay page as well.
-    VirtualFree((void*)handle->relay_base, 0x1000, MEM_RELEASE);
+    // Deallocating relay pages as well.
+    std::unordered_map<uintptr_t, size_t>::iterator relay_it;
+    for(relay_it = handle->relay_pages.begin();
+        relay_it != handle->relay_pages.end();
+        it++)
+    {
+        VirtualFree((void*)relay_it->first, 0x1000, MEM_RELEASE);
+    }
 #endif
     return true;
 }
@@ -478,35 +534,30 @@ bool SetupInlineHook(HTPHandle*  handle,
         target_address = next_address;
     }
 #if _M_X64
-    // If 64bits, checking if relay has been allocated
-    if(handle->relay_base == NULL)
+    // If 64bits, checking if relay page has been allocated within range.
+    uintptr_t relay_base = NULL;
+    relay_base = FindNearestAvailableRelayPage(handle, target_address);
+    if(relay_base == NULL) // No relay found
     {
         // Trying to allocate within 2GB of the module.
-        // TODO: Currently we only support up to 128 entries.
-        //       We need to implement bottom up reallocation.
-        //       There's still a risk where a new page
-        //       would be allocated in between
-        handle->relay_base = FindFreePage(target_address);
-    }
-    // Did we reach maximum the maximum relay number?
-    // Did we successfully allocate memory for the relay array?
-    if (handle->relay_base == NULL || handle->number_of_relays >= MAX_RELAY_NUMBER)
-    {
-        // Failed at allocating memory within 2GB for the relay.
-        // Copying the relay code at the function_entry.
-        prologue_size = 14; // jmp rip; 0x4142434445464748
-        relay = (HTPRelay*)target_address;
-        hook->relay_address = NULL; // No relay, directly jumping to the trampoline
-        using_relay = false;
-        //free(hook); FreeTrampoline(trampoline);
-        //return false;
-    }
-    else
-    {
-        // Allocation successful, using relative jump
-        prologue_size = 5; // jmp rel
-        relay = GetNextAvailableRelayEntry(handle->relay_base);
-        using_relay = true;
+        // Or the relay array is full, allocating a new page closest to target address
+        relay_base = FindFreePage(target_address);
+        if(relay_base != NULL)
+        {
+            handle->relay_pages.insert(std::make_pair(relay_base, 0));
+            prologue_size = 5; // jmp rel
+            relay = GetNextAvailableRelayEntry(relay_base);
+            using_relay = true;
+        }
+        else
+        {
+            // Failed allocating the relay.
+            // Copying the relay code at the function_entry.
+            using_relay = false;
+            hook->relay_address = NULL;
+            relay = (HTPRelay*)target_address;
+            prologue_size = 14;
+        }
     }
 #endif
     while(hook_space < prologue_size)
@@ -528,7 +579,12 @@ bool SetupInlineHook(HTPHandle*  handle,
     // Setting up the hook prologue, the relay and the trampoline with the right addresses.
     memcpy(relay->prologue.opcodes, "\xFF\x25\x00\x00\x00\x00", 6);
     relay->prologue.trampoline_address = (uintptr_t)trampoline;
-    handle->number_of_relays++;
+    if(!IncrementRelayCount(handle, relay_base))
+    {
+        DBGMSG("Error increment relay count for relay page: %p\n", relay_base);
+        free(hook); FreeTrampoline(trampoline);
+        return false;
+    }
     // If we successfully allocated a relay, use it, otherwise we already copied
     // the relay prologue to the function entry
     if(using_relay)
@@ -536,7 +592,8 @@ bool SetupInlineHook(HTPHandle*  handle,
         prologue = (HTPHookPrologue*)target_address;
         prologue->opcode = 0xe9; // jmp rel
         prologue->offset = (uint32_t)((uintptr_t)relay - target_address - 5);
-        hook->relay_address = (uintptr_t)relay; // successfully using a relay 
+        hook->relay_address = (uintptr_t)relay; // successfully using a relay
+        hook->relay_page = relay_base;
         relay->allocated = 0x1;
     }
 #else // _M_IX32
@@ -558,4 +615,62 @@ bool SetupInlineHook(HTPHandle*  handle,
     handle->hook_list.push_back(hook);
     handle->number_of_hooks++; // Incrementing counter
     return true;
+}
+
+/**
+ * Wrappers around SetupInlineHook to hook target_proc residing in loaded module_name.
+ */
+bool SetupInlineHook(HTPHandle* handle, char* module_name, char* proc_name, HTPHookProc hook_proc)
+{
+    HMODULE module_handle = NULL;
+    uintptr_t target_proc = NULL;
+    if(module_name == NULL || proc_name == NULL || hook_proc == NULL || handle == NULL)
+    {
+        DBGMSG("Invalid parameter\n");
+        return false;
+    }
+    module_handle = GetModuleHandleA(module_name);
+    if(module_handle == NULL)
+    {
+        DBGMSG("Failed getting the module: %s, error: %d", module_name, GetLastError());
+        return false;
+    }
+    target_proc = (uintptr_t)GetProcAddress(module_handle, proc_name);
+    if(target_proc == NULL)
+    {
+        DBGMSG("Failed getting function: %s, error: %d\n", proc_name, GetLastError());
+        return false;
+    }
+    return SetupInlineHook(handle, target_proc, hook_proc);
+}
+
+/**
+ * Wrappers around SetupInlineHook to hook target_proc residing in loaded module_name.
+ */
+bool SetupInlineHook(HTPHandle* handle, char* module_name, char* proc_name, HTPHookProc prehook_proc, HTPHookProc posthook_proc)
+{
+    HMODULE module_handle = NULL;
+    uintptr_t target_proc = NULL;
+    if(module_name == NULL || 
+       proc_name == NULL ||
+       prehook_proc == NULL ||
+       posthook_proc == NULL ||
+       handle == NULL)
+    {
+        DBGMSG("Invalid parameter\n");
+        return false;
+    }
+    module_handle = GetModuleHandleA(module_name);
+    if(module_handle == NULL)
+    {
+        DBGMSG("Failed getting the module: %s, error: %d", module_name, GetLastError());
+        return false;
+    }
+    target_proc = (uintptr_t)GetProcAddress(module_handle, proc_name);
+    if(target_proc == NULL)
+    {
+        DBGMSG("Failed getting function: %s, error: %d\n", proc_name, GetLastError());
+        return false;
+    }
+    return SetupInlineHook(handle, target_proc, prehook_proc, posthook_proc);
 }
