@@ -37,7 +37,7 @@ bool HTPClose(HTPHandle* handle)
     // Deallocating all arrays.
     if(RemoveAllInlineHooks(handle) == false)
     {
-        printf("RemoveAllHooks failed\n");
+        DBGMSG("RemoveAllHooks failed\n");
         return false;
     }
     return true;

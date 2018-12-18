@@ -1,63 +1,63 @@
 #include "htp.h"
 
+//disable assert ifor release mode testing if needed.
+//#undef NDEBUG
 #include <cassert>
 #include <cstdio>
 
 #include <Windows.h>
 
-#define NBDEBUG
-
 uint64_t TargetFunction1(uint64_t arg)
 {
-    printf("arg: %llx\n", arg);
+    printf("%s arg: %llx\n", __FUNCTION__, arg);
     return arg + arg;
 }
 
 uint64_t TargetFunction0(uint64_t arg)
 {
-    printf("arg: %llx\n", arg);
+    printf("%s arg: %llx\n", __FUNCTION__, arg);
     return TargetFunction1(arg + arg);
 }
 
 uint64_t TargetFunction2(uint64_t arg)
 {
-    printf("arg: %llx\n", arg);
+    printf("%s arg: %llx\n", __FUNCTION__, arg);
     return arg + arg;
 }
 
 uint64_t TargetFunction3(uint64_t arg)
 {
-    printf("arg: %llx\n", arg);
+    printf("%s arg: %llx\n", __FUNCTION__, arg);
     return arg + arg;
 }
 
 uint64_t TargetFunction4(uint64_t arg)
 {
-    printf("arg: %llx\n", arg);
+    printf("%s arg: %llx\n", __FUNCTION__, arg);
     return arg + arg;
 }
 
 uint64_t TargetFunction5(uint64_t arg)
 {
-    printf("arg: %llx\n", arg);
+    printf("%s arg: %llx\n", __FUNCTION__, arg);
     return arg + arg;
 }
 
 uint64_t TargetFunction6(uint64_t arg)
 {
-    printf("arg: %llx\n", arg);
+    printf("%s arg: %llx\n", __FUNCTION__, arg);
     return arg + arg;
 }
 
 uint64_t TargetFunction7(uint64_t arg)
 {
-    printf("arg: %llx\n", arg);
+    printf("%s arg: %llx\n", __FUNCTION__, arg);
     return arg + arg;
 }
 
 uint64_t TargetFunction8(uint64_t arg)
 {
-    printf("arg: %llx\n", arg);
+    printf("%s arg: %llx\n", __FUNCTION__, arg);
     return arg + arg;
 }
 

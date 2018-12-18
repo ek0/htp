@@ -7,6 +7,9 @@
 
 #include <cstdint>
 
+#define __STDC_FORMAT_MACRO
+#include <inttypes.h> // For PRIxPTR
+
 #if !defined(_M_X64) && !defined(_M_IX86)
     #error "Target platform not supported"
 #endif
@@ -14,6 +17,13 @@
 #include <list>
 #include <stack>
 #include <unordered_map>
+
+#ifdef _DEBUG
+#define DBGMSG(fmt, ...) printf("%s: ", __FUNCTION__); \
+                         printf(fmt, __VA_ARGS__)
+#else
+#define DBGMSG(fmt, ...) (void)(0)
+#endif
 
 // TODO: Update struct for floating point registers and AVX?
 struct HTPContext

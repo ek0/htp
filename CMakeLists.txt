@@ -8,6 +8,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_BINARY_DIR}/bin)
 
 # General poject settings
 option(HTP_BUILD_SHARED_LIB "Build shared library" OFF)
+add_compile_options("/EHsc") # Using map and vector among other things.
 
 # -----------------------------------------------------------------------------
 # Building external dependencies

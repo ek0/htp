@@ -6,12 +6,6 @@
 #include <cstdio>
 #include <cstdint>
 
-#ifdef _DEBUG
-#define DBGMSG(fmt, ...) printf("%s: " fmt, __FUNCTION__, __VA_ARGS__)
-#else
-#define DBGMSG(fmt, ...) (void)(0)
-#endif
-
 #define MAX_INSTRUCTION_SIZE 15
 #define MAX_RELAY_NUMBER     128
 
@@ -253,7 +247,7 @@ bool SetupInlineHook(HTPHandle *handle, uintptr_t target_address, HTPHookProc ho
     }
     if (AllocTrampoline(&trampoline) == false)
     {
-        DBGMSG("AllocTrampoline failed : %lu\n", GetLastError());
+        DBGMSG("AllocTrampoline failed : %" PRIu32 "\n", GetLastError());
         free(hook);
         return false;
     }
@@ -307,7 +301,7 @@ bool SetupInlineHook(HTPHandle *handle, uintptr_t target_address, HTPHookProc ho
     memcpy(trampoline->saved_opcodes, (char*)target_address, hook_space);
     if(!VirtualProtect((void*)target_address, hook_space, PAGE_EXECUTE_READWRITE, &dwOldProt))
     {
-        DBGMSG("VirtualProtect failed : %lu\n", GetLastError());
+        DBGMSG("VirtualProtect failed : %" PRIu32 "\n", GetLastError());
         free(hook); FreeTrampoline(trampoline);
         return false;
     }
@@ -317,7 +311,7 @@ bool SetupInlineHook(HTPHandle *handle, uintptr_t target_address, HTPHookProc ho
     relay->prologue.trampoline_address = (uintptr_t)trampoline;
     if(!IncrementRelayCount(handle, relay_base))
     {
-        DBGMSG("Error increment relay count for relay page: %p\n", relay_base);
+        DBGMSG("Error increment relay count for relay page: %#" PRIxPTR "\n", relay_base);
         free(hook); FreeTrampoline(trampoline);
         return false;
     }
@@ -364,7 +358,7 @@ bool RemoveInlineHookInternal(HTPHandle* handle, HTPHook* hook_entry)
     // Restoring original opcodes
     if(!VirtualProtect((void*)hook_address, hook_entry->number_of_opcodes, PAGE_EXECUTE_READWRITE, &dwOldProt))
     {
-        DBGMSG("VirtualProtect failed : %lu\n", GetLastError());
+        DBGMSG("VirtualProtect failed : %" PRIu32 "\n", GetLastError());
         return false;
     }
     memcpy((char*)hook_address, trampoline->saved_opcodes, hook_entry->number_of_opcodes);
@@ -517,7 +511,7 @@ bool SetupInlineHook(HTPHandle*  handle,
     }
     if (AllocTrampoline(&trampoline) == false)
     {
-        DBGMSG("AllocTrampoline failed : %lu\n", GetLastError());
+        DBGMSG("AllocTrampoline failed : %" PRIu32 "\n", GetLastError());
         free(hook);
         return false;
     }
@@ -571,7 +565,7 @@ bool SetupInlineHook(HTPHandle*  handle,
     memcpy(trampoline->saved_opcodes, (char*)target_address, hook_space);
     if(!VirtualProtect((void*)target_address, hook_space, PAGE_EXECUTE_READWRITE, &dwOldProt))
     {
-        DBGMSG("VirtualProtect failed : %lu\n", GetLastError());
+        DBGMSG("VirtualProtect failed : %" PRIu32 "\n", GetLastError());
         free(hook); FreeTrampoline(trampoline);
         return false;
     }
@@ -581,7 +575,7 @@ bool SetupInlineHook(HTPHandle*  handle,
     relay->prologue.trampoline_address = (uintptr_t)trampoline;
     if(!IncrementRelayCount(handle, relay_base))
     {
-        DBGMSG("Error increment relay count for relay page: %p\n", relay_base);
+        DBGMSG("Error increment relay count for relay page: %#" PRIxPTR "\n", relay_base);
         free(hook); FreeTrampoline(trampoline);
         return false;
     }
@@ -632,13 +626,13 @@ bool SetupInlineHook(HTPHandle* handle, char* module_name, char* proc_name, HTPH
     module_handle = GetModuleHandleA(module_name);
     if(module_handle == NULL)
     {
-        DBGMSG("Failed getting the module: %s, error: %d", module_name, GetLastError());
+        DBGMSG("Failed getting the module: %s, error: %" PRIu32 "\n", module_name, GetLastError());
         return false;
     }
     target_proc = (uintptr_t)GetProcAddress(module_handle, proc_name);
     if(target_proc == NULL)
     {
-        DBGMSG("Failed getting function: %s, error: %d\n", proc_name, GetLastError());
+        DBGMSG("Failed getting function: %s, error: %" PRIu32 "\n", proc_name, GetLastError());
         return false;
     }
     return SetupInlineHook(handle, target_proc, hook_proc);
@@ -663,13 +657,13 @@ bool SetupInlineHook(HTPHandle* handle, char* module_name, char* proc_name, HTPH
     module_handle = GetModuleHandleA(module_name);
     if(module_handle == NULL)
     {
-        DBGMSG("Failed getting the module: %s, error: %d", module_name, GetLastError());
+        DBGMSG("Failed getting the module: %s, error: %" PRIu32 "\n", module_name, GetLastError());
         return false;
     }
     target_proc = (uintptr_t)GetProcAddress(module_handle, proc_name);
     if(target_proc == NULL)
     {
-        DBGMSG("Failed getting function: %s, error: %d\n", proc_name, GetLastError());
+        DBGMSG("Failed getting function: %s, error: %" PRIu32 "\n", proc_name, GetLastError());
         return false;
     }
     return SetupInlineHook(handle, target_proc, prehook_proc, posthook_proc);
