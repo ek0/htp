@@ -24,6 +24,9 @@ bool HTPInit(HTPHandle* handle)
 #endif
     // Hooks will be allocated during setup if needed.
     // Up to 128 entries
+
+    // Initializing lock
+    LockInit(&handle->rlock);
     return true;
 }
 

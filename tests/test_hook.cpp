@@ -1,9 +1,10 @@
 #include "htp.h"
 
 //disable assert ifor release mode testing if needed.
-//#undef NDEBUG
+#undef NDEBUG
 #include <cassert>
 #include <cstdio>
+#include <queue>
 
 #include <Windows.h>
 
@@ -99,6 +100,13 @@ void GetModuleHandlePostHook(HTPContext* ctx)
 #endif
 }
 
+void MyTargetFunction(void)
+{
+    Sleep(1);
+    assert(TargetFunction0(2) == 10);
+    Sleep(1);
+}
+
 int main(int argc, char** argv)
 {
     HTPHandle handle;
@@ -155,6 +163,20 @@ int main(int argc, char** argv)
     assert(SetupInlineHook(&handle, (uintptr_t)TargetFunction1, NewFunction, PostHook));
     for(size_t i = 0; i < 10000; ++i)
         assert(TargetFunction0(4) == 10);
+
+    puts("Testing threaded");
+    std::queue<HANDLE> thqueue;
+    for (int i = 0; i < 0x2000; i++) {
+        DWORD dwThreadId;
+        HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)MyTargetFunction, NULL, 0, &dwThreadId);
+        if (hThread != NULL) {
+            thqueue.push(hThread);
+        }
+    }
+    while (!thqueue.empty()) {
+        WaitForSingleObject(thqueue.front(), INFINITE);
+        thqueue.pop();
+    }
 
     puts("SetupInlineHook API\n");
     SetupInlineHook(&handle, "kernel32.dll", "GetModuleHandleA", GetModuleHandleHook, GetModuleHandlePostHook);

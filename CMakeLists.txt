@@ -19,8 +19,8 @@ if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/Zydis/.git")
 endif()
 add_subdirectory("external/Zydis")
 
-# Global include directory, for htp.h
-include_directories("include")
+#utils directory
+set(UTILS_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/utils")
 
 if(HTP_BUILD_SHARED_LIB)
     add_library("htp" SHARED)
@@ -35,7 +35,7 @@ generate_export_header("htp" BASE_NAME "HTP"
                              EXPORT_FILE_NAME "htp_export_config.h")
 target_include_directories("htp"
     PUBLIC "include" ${PROJECT_BINARY_DIR}
-    PRIVATE "src")
+    PRIVATE "utils")
 # -----------------------------------------------------------------------------
 # Generating core libraries
 # -----------------------------------------------------------------------------

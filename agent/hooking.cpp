@@ -451,18 +451,22 @@ bool RemoveAllInlineHooks(HTPHandle* handle)
 // TODO: Move this to trampoline?
 void SaveReturnAddress(HTPHandle* handle, uintptr_t return_address)
 {
+    Lock(&handle->rlock);
     uint32_t tid = GetCurrentThreadId();
     if(handle->return_stack.find(tid) == handle->return_stack.end())
         // Thread doesn't exist yet, inserting.
         handle->return_stack.insert(std::make_pair(tid, std::stack<uintptr_t>()));
     handle->return_stack.at(tid).push(return_address);
+    Unlock(&handle->rlock);
 }
 
 uintptr_t RestoreReturnAddress(HTPHandle* handle)
 {
+    Lock(&handle->rlock);
     uint32_t tid = GetCurrentThreadId();
     uintptr_t return_address = handle->return_stack.at(tid).top();
     handle->return_stack.at(tid).pop();
+    Unlock(&handle->rlock);
     return return_address;
 }
 

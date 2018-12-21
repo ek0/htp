@@ -3,6 +3,10 @@
 
 #include "htp_export_config.h"
 
+// TODO: When refactoring htp.h and moving to a opaque handle
+// Move this somewhere else so this doesn't bleed into the
+#include "lock.h"
+
 #include "Zydis/Zydis.h"
 
 #include <cstdint>
@@ -80,6 +84,7 @@ struct HTPRelayPage
 };
 
 // HTP API functions
+// TODO: Change for an opaque pointer. once we'll have more components.
 struct HTPHandle
 {
     uintptr_t             image_base;       // process image base
@@ -95,10 +100,10 @@ struct HTPHandle
     // Disassembly related components
     ZydisDecoder          decoder;
     // Process related information
-};
 
-//#define GetReturnAddress(ctx) (*(uintptr_t*)(ctx->rsp))
-//#define GetArg(ctx, num) (*(uintptr_t*)(ctx->rsp + (num * sizeof(uintptr_t)))
+    // Lock for the hooks save/restoring return address
+    RecursiveLock rlock;
+};
 
 bool HTP_EXPORT HTPInit(HTPHandle* handle);
 bool HTP_EXPORT HTPClose(HTPHandle* handle);
