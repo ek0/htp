@@ -35,7 +35,7 @@ void Lock(RecursiveLock *lock)
     if (lock->lock_tid == tid) {
         lock->recursive_lock_count++;
     }
-    while (InterlockedCompareExchange((volatile uint32_t*)&lock->lock_tid, tid, -1) != -1) {
+    while (InterlockedCompareExchange(&lock->lock_tid, tid, -1) != -1) {
         YieldProcessor();
     }
     lock->recursive_lock_count = 1;
