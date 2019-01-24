@@ -409,7 +409,10 @@ bool RemoveInlineHook(HTPHandle* handle, uintptr_t target_address)
         if((*it)->original_function_address == target_address)
         {
             // Found hook entry! Deallocating and removing.
-            return RemoveInlineHookInternal(handle, *it);
+            if(!RemoveInlineHookInternal(handle, *it))
+                return false;
+            handle->hook_list.erase(it);
+            return true;
         }
     }
     return false;
@@ -440,7 +443,7 @@ bool RemoveAllInlineHooks(HTPHandle* handle)
     std::unordered_map<uintptr_t, size_t>::iterator relay_it;
     for(relay_it = handle->relay_pages.begin();
         relay_it != handle->relay_pages.end();
-        it++)
+        relay_it++)
     {
         VirtualFree((void*)relay_it->first, 0x1000, MEM_RELEASE);
     }

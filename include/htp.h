@@ -6,6 +6,7 @@
 // TODO: When refactoring htp.h and moving to a opaque handle
 // Move this somewhere else so this doesn't bleed into the
 #include "lock.h"
+#include "module.h"
 
 #include "Zydis/Zydis.h"
 
@@ -103,6 +104,8 @@ struct HTPHandle
 
     // Lock for the hooks save/restoring return address
     RecursiveLock rlock;
+    // Loaded modules
+    std::list<Module*>    module_list;
 };
 
 bool HTP_EXPORT HTPInit(HTPHandle* handle);
