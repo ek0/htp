@@ -5,6 +5,7 @@
 
 // TODO: When refactoring htp.h and moving to a opaque handle
 // Move this somewhere else so this doesn't bleed into the
+#include "server.h"
 #include "lock.h"
 #include "module.h"
 
@@ -106,6 +107,8 @@ struct HTPHandle
     RecursiveLock rlock;
     // Loaded modules
     std::list<Module*>    module_list;
+    // Server Handle, for communications
+    HTPServer server;
 };
 
 bool HTP_EXPORT HTPInit(HTPHandle* handle);

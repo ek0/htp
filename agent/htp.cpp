@@ -1,4 +1,4 @@
-
+#include "server.h"
 #include "htp.h"
 
 #include "Windows.h"
@@ -7,6 +7,7 @@ bool HTPInit(HTPHandle* handle)
 {
     HMODULE module_base = NULL;
 
+    StartServer(&handle->server);
     handle->image_base = (uintptr_t)GetModuleHandle(NULL);
     // avoiding passing HINSTANCE from DllMain since we don't really
     // know how the dll will be injected.
@@ -46,5 +47,6 @@ bool HTPClose(HTPHandle* handle)
         return false;
     }
     CleanupModuleList(handle);
+    StopServer(&handle->server);
     return true;
 }
