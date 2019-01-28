@@ -45,7 +45,7 @@ bool UnloadModule(HTPHandle* handle, const char* module_path)
     {
         char* current_module_name = (*it)->module_path;
         DBGMSG("Looking to unload %s. At %s\n", module_path, current_module_name);
-        if(strncmp(current_module_name, module_path, strlen(current_module_name)))
+        if(!strncmp(current_module_name, module_path, strlen(current_module_name)))
         {
             found = true;
             DBGMSG("Freeing %s\n", current_module_name);
