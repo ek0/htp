@@ -1,6 +1,8 @@
 #ifndef _MESSAGE_H_
 #define _MESSAGE_H_
 
+#include <cstdint>
+
 #define MESSAGE_MAX_BUFFER_SIZE 8192
 
 enum MessageType
@@ -10,6 +12,8 @@ enum MessageType
     Log,
     MessageTypeMax
 };
+
+typedef uint64_t ModuleId;
 
 //  Commands
 //    Hook
@@ -25,6 +29,7 @@ enum MessageType
 struct Message
 {
     MessageType type;
+    ModuleId    id;   // ID of the module to receive this message
     size_t      size;
     char        data[MESSAGE_MAX_BUFFER_SIZE];
 };
@@ -32,6 +37,7 @@ struct Message
 struct LoadModuleMessage
 {
     MessageType type;
+    ModuleId    id;
     size_t      size;
     char        data[MESSAGE_MAX_BUFFER_SIZE]; // module path
 };

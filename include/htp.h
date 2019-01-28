@@ -120,4 +120,8 @@ bool HTP_EXPORT SetupInlineHook(HTPHandle* handle, uintptr_t target_address, HTP
 bool HTP_EXPORT RemoveInlineHook(HTPHandle* handle, uintptr_t target_address);
 bool HTP_EXPORT RemoveAllInlineHooks(HTPHandle* handle);
 
+// TODO: Move somewhere else?
+bool LoadModule(HTPHandle* handle, const char* module_path);
+bool UnloadModule(HTPHandle* handle, const char* module_path);
+
 #endif _HTP_H_
