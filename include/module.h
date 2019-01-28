@@ -11,6 +11,7 @@ struct Module
     char      module_path[MAX_PATH];
     uintptr_t base_address;
     size_t    module_size;
+    bool      broker_loaded; // Module loaded using broker
 };
 
 bool GetProcessModules(struct HTPHandle* handle);

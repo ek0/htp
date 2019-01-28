@@ -17,9 +17,11 @@ bool LoadModule(HTPHandle* handle, const char* module_path)
     // TODO: Handle error
     if(module_handle != nullptr)
     {
+        // Adding agent to module list
         Module* new_module = new Module;
         new_module->handle = module_handle;
         new_module->base_address = (uintptr_t)module_handle;
+        new_module->broker_loaded = true;
         strncpy_s(new_module->module_path, MAX_PATH, module_path, strlen(module_path));
         handle->module_list.push_back(new_module);
     }
@@ -39,7 +41,7 @@ bool UnloadModule(HTPHandle* handle, const char* module_path)
     // Finding specified module
     for(it = handle->module_list.begin();
         it != handle->module_list.end() && !found;
-        it++)
+        /* incrementing later */)
     {
         char* current_module_name = (*it)->module_path;
         if(strncmp(current_module_name, module_path, strlen(current_module_name)))
@@ -47,7 +49,11 @@ bool UnloadModule(HTPHandle* handle, const char* module_path)
             found = true;
             FreeLibrary((*it)->handle);
             delete (*it);
-            handle->module_list.erase(it);
+            it = handle->module_list.erase(it);
+        }
+        else
+        {
+            it++;
         }
     }
     return found;

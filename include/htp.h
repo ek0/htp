@@ -105,7 +105,7 @@ struct HTPHandle
 
     // Lock for the hooks save/restoring return address
     RecursiveLock rlock;
-    // Loaded modules
+    // Loaded DLL modules
     std::list<Module*>    module_list;
     // Server Handle, for communications
     HTPServer server;
