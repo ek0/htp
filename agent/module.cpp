@@ -9,6 +9,7 @@ bool GetProcessModules(HTPHandle* handle)
     MODULEENTRY32 module_entry;
     HANDLE module_snapshot_handle = INVALID_HANDLE_VALUE;
 
+    // TODO: Check if list already exists.
     module_snapshot_handle = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
     if(module_snapshot_handle == INVALID_HANDLE_VALUE)
     {
@@ -38,6 +39,7 @@ bool GetProcessModules(HTPHandle* handle)
         new_module->base_address = (uintptr_t)module_entry.modBaseAddr;
         new_module->module_size = module_entry.modBaseSize;
         new_module->handle = module_entry.hModule;
+        new_module->broker_loaded = false;
         //memcpy(new_module->szModule, module_entry.szModule, sizeof(module_entry.szModule));
         //_strlwr_s(new_module->szModule, sizeof(new_module->szModule) - 1);
         memcpy(new_module->module_path, module_entry.szExePath, sizeof(module_entry.szExePath));
