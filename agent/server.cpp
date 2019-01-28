@@ -35,6 +35,7 @@ void ServerLoop(HTPServer* server)
             }
             DBGMSG("Bytes sent: %d\n", send_result);
         }
+        // To Change
         else if(result == 0)
         {
             DBGMSG("Connection closing...\n");
