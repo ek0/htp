@@ -24,3 +24,4 @@ target_sources("htp" PRIVATE "${CMAKE_CURRENT_LIST_DIR}/hooking.cpp"
                              "${UTILS_DIRECTORY}/lock.cpp")
 target_link_libraries("htp" PUBLIC "Zydis")
 target_link_libraries("htp" PUBLIC "Zycore")
+target_link_libraries("htp" PUBLIC "mm")

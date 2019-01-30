@@ -2,6 +2,7 @@
 #define _MODULE_H_
 
 #include "htp.h"
+#include "mm.h"
 
 #include <Windows.h>
 
@@ -12,6 +13,7 @@ struct Module
     uintptr_t base_address;
     size_t    module_size;
     bool      broker_loaded; // Module loaded using broker
+    MMState   state;
 };
 
 bool GetProcessModules(struct HTPHandle* handle);

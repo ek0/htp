@@ -13,19 +13,24 @@ bool LoadModule(HTPHandle* handle, const char* module_path)
 {
     // TODO: Check if path exists.
     // TODO: Handle current directory
-    HMODULE module_handle = LoadLibraryA(module_path);
-    // TODO: Handle error
-    if(module_handle != nullptr)
+    Module* new_module = new Module;
+    if(ManualDllLoad(&new_module->state, module_path) == MM_OK)
     {
+        // TODO: Handle error
         // Adding agent to module list
-        Module* new_module = new Module;
-        new_module->handle = module_handle;
-        new_module->base_address = (uintptr_t)module_handle;
+        
+        new_module->handle = (HMODULE)new_module->state.dll_base_addr;
+        new_module->base_address = new_module->state.dll_base_addr;
         new_module->broker_loaded = true;
         strncpy_s(new_module->module_path, MAX_PATH, module_path, strlen(module_path));
         handle->module_list.push_back(new_module);
+        return true;
     }
-    return true;
+    else
+    {
+        delete new_module;
+        return false;
+    }
 }
 
 bool UnloadModule(HTPHandle* handle, const char* module_path)
@@ -49,7 +54,7 @@ bool UnloadModule(HTPHandle* handle, const char* module_path)
         {
             found = true;
             DBGMSG("Freeing %s\n", current_module_name);
-            FreeLibrary((*it)->handle);
+            ManualDllUnload(&(*it)->state);
             delete (*it);
             it = handle->module_list.erase(it);
         }
