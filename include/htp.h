@@ -119,7 +119,7 @@ bool HTP_EXPORT SetupInlineHook(HTPHandle* handle, uintptr_t target_address, HTP
 bool HTP_EXPORT SetupInlineHook(HTPHandle* handle, uintptr_t target_address, HTPHookProc prehook_proc, HTPHookProc posthook_proc);
 bool HTP_EXPORT RemoveInlineHook(HTPHandle* handle, uintptr_t target_address);
 bool HTP_EXPORT RemoveAllInlineHooks(HTPHandle* handle);
-bool HTP_EXPORT LoadModule(HTPHandle* handle);
-bool HTP_EXPORT UnloadModule(HTPHandle* handle);
+bool HTP_EXPORT LoadModule(HTPHandle* handle, const char *dll_path);
+bool HTP_EXPORT UnloadModule(HTPHandle* handle, const char *dll_path);
 
 #endif _HTP_H_
