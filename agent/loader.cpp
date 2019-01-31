@@ -5,8 +5,6 @@
 
 #include "Windows.h"
 
-// TODO: Add manual loader
-
 // Generic loading using LoadLibrary, do not use with some security solutions
 // As it can be easy to monitor.
 bool LoadModule(HTPHandle* handle, const char* module_path)
@@ -18,7 +16,6 @@ bool LoadModule(HTPHandle* handle, const char* module_path)
     {
         // TODO: Handle error
         // Adding agent to module list
-        
         new_module->handle = (HMODULE)new_module->state.dll_base_addr;
         new_module->base_address = new_module->state.dll_base_addr;
         new_module->broker_loaded = true;

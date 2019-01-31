@@ -14,7 +14,7 @@
 #include <cstdint>
 
 #define __STDC_FORMAT_MACRO
-#include <inttypes.h> // For PRIxPTR
+#include <cinttypes> // For PRIxPTR
 
 #if !defined(_M_X64) && !defined(_M_IX86)
     #error "Target platform not supported"

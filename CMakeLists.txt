@@ -41,7 +41,6 @@ generate_export_header("htp" BASE_NAME "HTP"
 target_include_directories("htp"
     PUBLIC "include" ${PROJECT_BINARY_DIR}
     PRIVATE "utils")
-target_include_directories("htp" PUBLIC "external/mm")
 # -----------------------------------------------------------------------------
 # Generating core libraries
 # -----------------------------------------------------------------------------
