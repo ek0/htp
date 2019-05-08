@@ -17,6 +17,8 @@ struct HTPServer
     // Define callbacks to be executed here.
 };
 
+typedef void (*ServerCallback)(HTPServer*);
+
 #define BUFFER_SIZE  8192
 #define DEFAULT_PORT "27023"
 
