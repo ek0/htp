@@ -3,6 +3,22 @@
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <cstdint>
+
+#define PROTO_MAGIC 0x00505448
+
+struct HTPServer;
+struct HTPMessage;
+
+typedef void (*ServerOnReceiveCallback)(HTPServer*, HTPMessage*);
+typedef void (*ServerOnErrorCallback)(HTPServer*, uint32_t);
+
+struct HTPMessage
+{
+    size_t    size;
+    uint32_t  type;
+    char     *content;
+};
 
 struct HTPServer
 {
@@ -15,14 +31,14 @@ struct HTPServer
     HANDLE   server_thread_handle;
     bool     client_connected;
     // Define callbacks to be executed here.
+    ServerOnReceiveCallback OnReceive;
+    ServerOnErrorCallback   OnError; // TODO
 };
-
-typedef void (*ServerCallback)(HTPServer*);
 
 #define BUFFER_SIZE  8192
 #define DEFAULT_PORT "27023"
 
-bool StartServer(HTPServer* server);
+bool StartServer(HTPServer* server, ServerOnReceiveCallback OnReceive);
 bool StopServer(HTPServer* server);
 
 #endif // _SERVER_H_

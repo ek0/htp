@@ -3,11 +3,16 @@
 
 #include "Windows.h"
 
+void OnReceive(HTPServer *server, HTPMessage *message)
+{
+    DBGMSG("Message received\n");
+}
+
 bool HTPInit(HTPHandle* handle)
 {
     HMODULE module_base = NULL;
 
-    StartServer(&handle->server);
+    StartServer(&handle->server, OnReceive);
     handle->image_base = (uintptr_t)GetModuleHandle(NULL);
     // avoiding passing HINSTANCE from DllMain since we don't really
     // know how the dll will be injected.

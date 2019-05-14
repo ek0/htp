@@ -6,74 +6,13 @@
 // To remove?
 #pragma comment(lib, "ws2_32.lib")
 
-bool ProcessReadMemoryMessage(HTPServer *server, struct ReadMemoryMessage *message)
-{
-    // TODO: check for correct address
-    // TODO: check for correct size
-    return false;
-}
-
-bool ProcessWriteMemoryMessage(HTPServer *server, struct WriteMemoryMessage *message)
-{
-    // TODO: check for correct address
-    // TODO: check for correct size
-    return false;
-}
-
-bool ProcessLoadModuleMessage(HTPServer *server, struct LoadModuleMessage *message)
-{
-    // TODO: check for correct address
-    // TODO: check for correct size
-    return false;
-}
-
-bool ProcessUnloadModuleMessage(HTPServer *server, struct UnloadModuleMessage *message)
-{
-    // TODO: check for correct address
-    // TODO: check for correct size
-    return false;
-}
-
-// Command processing routine
-bool ProcessCommand(HTPServer* server, struct MessageHeader *header, size_t buffer_size)
-{
-    if(header == nullptr || header->magic != 0x41424344)
-    {
-        DBGMSG("[+] Invalid Message...\n");
-        return false;
-    }
-    switch(header->type)
-    {
-        case LogMessage:
-        case AddHookMessage:
-        case RemoveHookMessage:
-            return false; // not implemented
-        case ReadMemoryMessage:
-            return ProcessReadMemoryMessage(server, GET_MESSAGE(header, struct ReadMemoryMessage));
-        case WriteMemoryMessage:
-            return ProcessWriteMemoryMessage(server, GET_MESSAGE(header, struct WriteMemoryMessage));
-        case LoadModuleMessage:
-            return ProcessLoadModuleMessage(server, GET_MESSAGE(header, struct LoadModuleMessage));
-        case UnloadModuleMessage:
-            return ProcessUnloadModuleMessage(server, GET_MESSAGE(header, struct UnloadModuleMessage));
-        default:
-            return false;
-    }
-}
-
-// On new connection
-void OnClientConnection(HTPServer *server)
-{
-
-}
-
 /**
  * Message buffer must be NULL
  * Message buffer must be freed by the caller
  * TODO Change prototyupe?
  * TODO: Extract this logic and move server to abstract project
  */
-MessageType GetMessage(HTPServer *server, char *message_buffer)
+MessageError GetMessage(HTPServer *server, HTPMessage *message)
 {
     size_t bytes_received = 0;
     int result = 0;
@@ -89,44 +28,60 @@ MessageType GetMessage(HTPServer *server, char *message_buffer)
             case SOCKET_ERROR:
                 DBGMSG("recv failed with error: %d\n", WSAGetLastError());
                 closesocket(server->client_socket);
-                closesocket(server->listen_socket);
-                WSACleanup();
-                return MaxMessage;
+                return MESSAGE_SOCKET_ERROR;
 
             case 0:
                 DBGMSG("Client closed connection\n");
-                return ClientDisconnectMessage;
+                return MESSAGE_CLIENT_DISCONNECTED;
         }
         bytes_received += result;
         DBGMSG("Bytes received: %llx\n", bytes_received);
     } while(bytes_received != sizeof(MessageHeader));
     DBGMSG("MessageHeader: magic: %x, type: %x, content size: %x\n", header.magic, header.type, header.message_size);
+    if(header.magic != PROTO_MAGIC)
+    {
+        DBGMSG("Invalid packet format\n");
+        return MESSAGE_INVALID_FORMAT;
+    }
+    if(header.message_size == 0)
+    {
+        DBGMSG("Length can't be 0\n");
+        return MESSAGE_CONTENT_EMPTY;
+    }
     bytes_received = 0; // resetting the bytes
-    message_buffer = new char[header.message_size];
+    result = 0;
+    // Crafting the proper message object
+    message->content = new char[header.message_size];
+    message->size    = header.message_size;
+    message->type    = header.type;
     do
     {
-        bytes_received += recv(server->client_socket, message_buffer, header.message_size, 0);
+        result += recv(server->client_socket, message->content, header.message_size, 0);
+        switch(result)
+        {
+            case SOCKET_ERROR:
+                DBGMSG("recv failed with error: %d\n", WSAGetLastError());
+                closesocket(server->client_socket);
+                return MESSAGE_SOCKET_ERROR;
+
+            case 0:
+                DBGMSG("Client closed connection\n");
+                return MESSAGE_CLIENT_DISCONNECTED;
+        }
+        bytes_received += result;
     } while (bytes_received <= sizeof(header.message_size));
-    // TODO: Remove this someplace else, in a callbakc for example
-    struct ReadMemoryMessage *tmp = (struct ReadMemoryMessage*)message_buffer;
-    DBGMSG("Address: %llx, Size: %x\n", tmp->virtual_address, tmp->size_in_bytes);
-    result = send(server->client_socket, (char*)tmp->virtual_address, tmp->size_in_bytes, 0);
-    DBGMSG("Result: %x %x\n", result, WSAGetLastError());
-    return header.type;
+    // Successfully received the whole message, exiting
+    return MESSAGE_SUCCESS;
 }
 
 // Server main loop
 void ServerLoop(HTPServer* server)
 {
-    //int    result = 0;
-    //int    send_result = 0;
-    //int    recv_length = BUFFER_SIZE;
-    //char   recv_buffer[BUFFER_SIZE];
-    //struct MessageHeader *header;
     bool client_disconnecting = false;
-    MessageType type = MaxMessage;
-    char *message = nullptr;
+    MessageError type = MESSAGE_SOCKET_ERROR;
+    HTPMessage message;
 
+    memset(&message, 0, sizeof(HTPMessage));
     // Accept a client socket
     server->client_socket = accept(server->listen_socket, nullptr, nullptr);
     if(server->client_socket == INVALID_SOCKET) {
@@ -136,20 +91,25 @@ void ServerLoop(HTPServer* server)
     }
     server->client_connected = true;
     do {
-        type = GetMessage(server, message);
-        if(type == MaxMessage)
+        type = GetMessage(server, &message);
+        if(type == MESSAGE_SOCKET_ERROR)
         {
-            // this is dumb TODO
-            DBGMSG("Error receiving message\n");
+            //DBGMSG("Error receiving message\n");
             return; // exiting?
         }
         // Processing messages
-        if(type == ClientDisconnectMessage)
+        if(type == MESSAGE_CLIENT_DISCONNECTED)
         {
-            DBGMSG("Client disconnecting...\n");
+            //DBGMSG("Client disconnecting...\n");
             client_disconnecting = true;
         }
-        delete[] message;
+        if(type == MESSAGE_SUCCESS)
+        {
+            server->OnReceive(server, &message);
+        }
+        // Deleting the received message
+        delete message.content;
+        message.content = nullptr;
     } while(!client_disconnecting);
 }
 
@@ -214,6 +174,21 @@ bool ServerListen(HTPServer *server)
     return true;
 }
 
+bool SendResponse(HTPServer *server, HTPMessage *message)
+{
+    // TODO
+    uint32_t bytes_sent = 0;
+    do
+    {
+        bytes_sent += send(server->client_socket, message->content, message->size, 0);
+        if(bytes_sent < 0)
+        {
+            DBGMSG("Error sending response: %d\n", WSAGetLastError);
+            return false;
+        }
+    } while(bytes_sent != message->size);
+}
+
 bool StopServer(HTPServer* server)
 {
     int result = 0;
@@ -243,14 +218,24 @@ bool StopServer(HTPServer* server)
     return true;
 }
 
-bool StartServer(HTPServer* server)
+bool StartServer(HTPServer* server, ServerOnReceiveCallback OnReceive)
 {
+    if(server == nullptr)
+    {
+        DBGMSG("server can't be NULL\n");
+        return false;
+    }
     if(!ServerInit(server))
     {
         DBGMSG("error starting the server\n");
         return false;
     }
-
+    if(OnReceive == nullptr)
+    {
+        DBGMSG("callback can't be NULL\n");
+        return false;
+    }
+    server->OnReceive = OnReceive;
     while(server->is_running = true)
     {
         // Wait for a connection

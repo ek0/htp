@@ -31,11 +31,11 @@ class HTPClient:
         return self.clientsocket.recv(8192)
 
     def write_memory(self, address, data):
-        self.send_message(MessageHeader(0x41414141, 0x4, len(data)))
+        self.send_message(MessageHeader(0x00505448, 0x4, len(data)))
         self.send_message(struct.pack("<Ps", len(data), data))
 
     def read_memory(self, address, size):
-        self.send_message(MessageHeader(0x41414141, 0x4, sizeof(c_void_p)*2))
+        self.send_message(MessageHeader(0x00505448, 0x4, sizeof(c_void_p)*2))
         self.send_message(struct.pack("<QI", address, size))
         return self.clientsocket.recv(size)
 
@@ -48,6 +48,5 @@ class HTPClient:
 
 if __name__ == "__main__":
     client = HTPClient()
-    #client.send_message(MessageHeader(0x41414141, 0x12345678, 0x4141414141414141))
     # TODO: change this ugly fucking shit
-    print struct.unpack("<I", client.read_memory(0x0007FF6F457E000, 4))[0]
+    print struct.unpack("<I", client.read_memory(, 4))[0]

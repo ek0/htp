@@ -3,21 +3,23 @@
 
 #include <cstdint>
 
+// TODO: Move to server.h
+
+typedef unsigned int MessageError;
+
 enum MessageType
 {
-    LogMessage,
-    AddHookMessage,
-    RemoveHookMessage,
-    ReadMemoryMessage,
-    WriteMemoryMessage,
-    LoadModuleMessage,
-    UnloadModuleMessage,
-    ClientDisconnectMessage,
-    MaxMessage
+    MessageTypeReadMemory,
+    MessageTypeWriteMemory
 };
 
+#define MESSAGE_SUCCESS             0x00000000
+#define MESSAGE_INVALID_FORMAT      0x00000001
+#define MESSAGE_CONTENT_EMPTY       0x00000002
+#define MESSAGE_CLIENT_DISCONNECTED 0x00000003
+#define MESSAGE_SOCKET_ERROR        0x00000004
 
-#define GET_MESSAGE(hdr, msg_type) (msg_type *)((uint8_t*)hdr + sizeof(struct MessageHeader))
+//#define GET_MESSAGE(hdr, msg_type) (msg_type *)((uint8_t*)hdr + sizeof(struct MessageHeader))
 
 #pragma pack(push, 1)
 struct MessageHeader
@@ -63,6 +65,11 @@ struct WriteMemoryMessage
     uintptr_t virtual_address;
     size_t    size_in_bytes;
     uint8_t   data[1]; // mesage[size_in_bytes]
+};
+
+struct WriteMemoryResponse
+{
+    uint32_t status;
 };
 
 struct LoadModuleMessage
