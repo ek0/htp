@@ -7,7 +7,7 @@
 #pragma comment(lib, "ws2_32.lib")
 
 /**
- * Message buffer must be NULL
+ * message->content must be NULL
  * Message buffer must be freed by the caller
  * TODO Change prototyupe?
  * TODO: Extract this logic and move server to abstract project
@@ -54,6 +54,7 @@ MessageError GetMessage(HTPServer *server, HTPMessage *message)
     message->content = new char[header.message_size];
     message->size    = header.message_size;
     message->type    = header.type;
+    // TODO: Dump
     do
     {
         result += recv(server->client_socket, message->content, header.message_size, 0);
@@ -72,6 +73,13 @@ MessageError GetMessage(HTPServer *server, HTPMessage *message)
     } while (bytes_received <= sizeof(header.message_size));
     // Successfully received the whole message, exiting
     return MESSAGE_SUCCESS;
+}
+
+void SendMessage(HTPServer *server, void* content, size_t size)
+{
+    MessageHeader header;
+
+    memset(&header, 0, sizeof(MessageHeader));
 }
 
 // Server main loop
@@ -183,10 +191,11 @@ bool SendResponse(HTPServer *server, HTPMessage *message)
         bytes_sent += send(server->client_socket, message->content, message->size, 0);
         if(bytes_sent < 0)
         {
-            DBGMSG("Error sending response: %d\n", WSAGetLastError);
+            DBGMSG("Error sending response: %d\n", WSAGetLastError());
             return false;
         }
     } while(bytes_sent != message->size);
+    return true;
 }
 
 bool StopServer(HTPServer* server)

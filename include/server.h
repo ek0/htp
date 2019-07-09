@@ -11,11 +11,11 @@ struct HTPServer;
 struct HTPMessage;
 
 typedef void (*ServerOnReceiveCallback)(HTPServer*, HTPMessage*);
-typedef void (*ServerOnErrorCallback)(HTPServer*, uint32_t);
+//typedef void (*ServerOnErrorCallback)(HTPServer*, uint32_t);
 
 struct HTPMessage
 {
-    size_t    size;
+    uint32_t  size;
     uint32_t  type;
     char     *content;
 };
@@ -32,7 +32,7 @@ struct HTPServer
     bool     client_connected;
     // Define callbacks to be executed here.
     ServerOnReceiveCallback OnReceive;
-    ServerOnErrorCallback   OnError; // TODO
+    //ServerOnErrorCallback   OnError; // TODO
 };
 
 #define BUFFER_SIZE  8192
