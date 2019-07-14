@@ -1,21 +1,15 @@
-#include "server.h"
 #include "htp.h"
 
 #include "Windows.h"
-
-void OnReceive(HTPServer *server, HTPMessage *message)
-{
-    DBGMSG("Message received\n");
-}
 
 bool HTPInit(HTPHandle* handle)
 {
     HMODULE module_base = NULL;
 
-    StartServer(&handle->server, OnReceive);
     handle->image_base = (uintptr_t)GetModuleHandle(NULL);
     // avoiding passing HINSTANCE from DllMain since we don't really
     // know how the dll will be injected.
+    // TODO: Move this into a parent project
     GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | 
                        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                        (LPCSTR)HTPInit, // Function within the DLL address space.
@@ -52,6 +46,5 @@ bool HTPClose(HTPHandle* handle)
         return false;
     }
     CleanupModuleList(handle);
-    StopServer(&handle->server);
     return true;
 }
