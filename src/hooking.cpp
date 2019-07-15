@@ -37,7 +37,6 @@ bool ResolveIndirectJmp(HTPHandle* handle, uintptr_t runtime_address, uintptr_t*
                     ret = true;
                 }
 #else
-                // TODO: Test
                 *target_address = instruction.operands[0].mem.disp.value;
                 ret = true;
 #endif
@@ -336,7 +335,6 @@ bool SetupInlineHook(HTPHandle *handle, uintptr_t target_address, HTPHookProc ho
     trampoline->hook_address = (uintptr_t)hook_address;
     VirtualProtect((void*)target_address, hook_space, dwOldProt, &dwOldProt);
     FlushInstructionCache(GetCurrentProcess(), (void*)target_address, 0x06);
-    // TODO: Move to function?
     hook->hook_address = target_address; // Patched address may differ from address provided in argument
     hook->is_active = true;
     handle->hook_list.push_back(hook);
@@ -409,7 +407,10 @@ bool RemoveInlineHook(HTPHandle* handle, uintptr_t target_address)
         if((*it)->original_function_address == target_address)
         {
             // Found hook entry! Deallocating and removing.
-            return RemoveInlineHookInternal(handle, *it);
+            if(!RemoveInlineHookInternal(handle, *it))
+                return false;
+            handle->hook_list.erase(it);
+            return true;
         }
     }
     return false;
@@ -440,7 +441,7 @@ bool RemoveAllInlineHooks(HTPHandle* handle)
     std::unordered_map<uintptr_t, size_t>::iterator relay_it;
     for(relay_it = handle->relay_pages.begin();
         relay_it != handle->relay_pages.end();
-        it++)
+        relay_it++)
     {
         VirtualFree((void*)relay_it->first, 0x1000, MEM_RELEASE);
     }

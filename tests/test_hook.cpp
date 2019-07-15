@@ -67,7 +67,7 @@ void NewFunction(HTPContext* ctx)
 #ifdef _M_X64
     ctx->rcx = 4;
 #elif defined(_M_IX86)
-    (*(uint32_t*)(ctx->esp + 0x04)) = 4; // TODO: UGLY
+    (*(uint32_t*)(ctx->esp + 0x04)) = 4;
 #endif
 }
 
@@ -178,10 +178,10 @@ int main(int argc, char** argv)
         thqueue.pop();
     }
 
-    puts("SetupInlineHook API\n");
+    puts("\nSetupInlineHook API");
     SetupInlineHook(&handle, "kernel32.dll", "GetModuleHandleA", GetModuleHandleHook, GetModuleHandlePostHook);
     HMODULE module = GetModuleHandleA("kernel32");
     printf("Module: %#p\n", module);
-
+    HTPClose(&handle);
     return 0;
 }

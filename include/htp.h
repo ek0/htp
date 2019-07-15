@@ -12,7 +12,7 @@
 #include <cstdint>
 
 #define __STDC_FORMAT_MACRO
-#include <inttypes.h> // For PRIxPTR
+#include <cinttypes> // For PRIxPTR
 
 #if !defined(_M_X64) && !defined(_M_IX86)
     #error "Target platform not supported"
@@ -84,7 +84,6 @@ struct HTPRelayPage
 };
 
 // HTP API functions
-// TODO: Change for an opaque pointer. once we'll have more components.
 struct HTPHandle
 {
     uintptr_t             image_base;       // process image base
