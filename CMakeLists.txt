@@ -39,7 +39,7 @@ target_include_directories("htp"
 # -----------------------------------------------------------------------------
 # Generating core libraries
 # -----------------------------------------------------------------------------
-include("${CMAKE_CURRENT_LIST_DIR}/agent/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/src/CMakeLists.txt")
 
 # -----------------------------------------------------------------------------
 # Generating tests configuration
