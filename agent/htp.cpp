@@ -27,8 +27,6 @@ bool HTPInit(HTPHandle* handle)
 
     // Initializing lock
     LockInit(&handle->rlock);
-    // Processing the process module list
-    GetProcessModules(handle);
     return true;
 }
 
@@ -45,6 +43,5 @@ bool HTPClose(HTPHandle* handle)
         DBGMSG("RemoveAllHooks failed\n");
         return false;
     }
-    CleanupModuleList(handle);
     return true;
 }

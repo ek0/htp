@@ -7,7 +7,6 @@
 // Move this somewhere else so this doesn't bleed into the
 //#include "server.h"
 #include "lock.h"
-#include "module.h"
 
 #include "Zydis/Zydis.h"
 
@@ -105,10 +104,6 @@ struct HTPHandle
 
     // Lock for the hooks save/restoring return address
     RecursiveLock rlock;
-    // Loaded DLL modules
-    std::list<Module*>    module_list;
-    // Server Handle, for communications
-    //HTPServer server;
 };
 
 bool HTP_EXPORT HTPInit(HTPHandle* handle);
@@ -119,7 +114,5 @@ bool HTP_EXPORT SetupInlineHook(HTPHandle* handle, uintptr_t target_address, HTP
 bool HTP_EXPORT SetupInlineHook(HTPHandle* handle, uintptr_t target_address, HTPHookProc prehook_proc, HTPHookProc posthook_proc);
 bool HTP_EXPORT RemoveInlineHook(HTPHandle* handle, uintptr_t target_address);
 bool HTP_EXPORT RemoveAllInlineHooks(HTPHandle* handle);
-bool HTP_EXPORT LoadModule(HTPHandle* handle, const char *dll_path);
-bool HTP_EXPORT UnloadModule(HTPHandle* handle, const char *dll_path);
 
 #endif _HTP_H_

@@ -18,11 +18,6 @@ if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/Zydis/.git")
             please run git submodule update --init --recursive")
 endif()
 add_subdirectory("external/Zydis")
-if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/mm/.git")
-    message(FATAL_ERROR "mm submodle not initialized, 
-            please run git submodule update --init --recursive")
-endif()
-add_subdirectory("external/mm")
 
 #utils directory
 set(UTILS_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/utils")

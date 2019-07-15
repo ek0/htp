@@ -17,11 +17,7 @@ endif()
 target_sources("htp" PRIVATE "${CMAKE_CURRENT_LIST_DIR}/hooking.cpp"
                              "${CMAKE_CURRENT_LIST_DIR}/htp.cpp"
                              "${CMAKE_CURRENT_LIST_DIR}/trampoline.cpp"
-                             "${CMAKE_CURRENT_LIST_DIR}/loader.cpp"
-                             "${CMAKE_CURRENT_LIST_DIR}/module.cpp"
-                             #"${CMAKE_CURRENT_LIST_DIR}/server.cpp"
                              ${TRAMPOLINE_SOURCES}
                              "${UTILS_DIRECTORY}/lock.cpp")
 target_link_libraries("htp" PUBLIC "Zydis")
 target_link_libraries("htp" PUBLIC "Zycore")
-target_link_libraries("htp" PUBLIC "mm")
