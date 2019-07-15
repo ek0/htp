@@ -67,7 +67,7 @@ void NewFunction(HTPContext* ctx)
 #ifdef _M_X64
     ctx->rcx = 4;
 #elif defined(_M_IX86)
-    (*(uint32_t*)(ctx->esp + 0x04)) = 4; // TODO: UGLY
+    (*(uint32_t*)(ctx->esp + 0x04)) = 4;
 #endif
 }
 

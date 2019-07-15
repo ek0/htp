@@ -7,14 +7,6 @@ bool HTPInit(HTPHandle* handle)
     HMODULE module_base = NULL;
 
     handle->image_base = (uintptr_t)GetModuleHandle(NULL);
-    // avoiding passing HINSTANCE from DllMain since we don't really
-    // know how the dll will be injected.
-    // TODO: Move this into a parent project
-    GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | 
-                       GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                       (LPCSTR)HTPInit, // Function within the DLL address space.
-                       &module_base);
-    handle->agent_base = (uintptr_t)module_base;
     handle->number_of_hooks = 0;
 #ifdef _M_X64
     handle->relay_pages = std::unordered_map<uintptr_t, size_t>();

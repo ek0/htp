@@ -5,7 +5,6 @@
 
 // TODO: When refactoring htp.h and moving to a opaque handle
 // Move this somewhere else so this doesn't bleed into the
-//#include "server.h"
 #include "lock.h"
 
 #include "Zydis/Zydis.h"
@@ -85,7 +84,6 @@ struct HTPRelayPage
 };
 
 // HTP API functions
-// TODO: Change for an opaque pointer. once we'll have more components.
 struct HTPHandle
 {
     uintptr_t             image_base;       // process image base
