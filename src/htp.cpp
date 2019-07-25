@@ -1,11 +1,16 @@
 #include "htp.h"
+#include "htp_internal.h"
 
 #include "Windows.h"
 
-bool HTPInit(HTPHandle* handle)
+
+
+struct HTPHandle* HTPInit()
 {
     HMODULE module_base = NULL;
+    struct HTPHandle* handle = NULL;
 
+    handle = new HTPHandle;
     handle->image_base = (uintptr_t)GetModuleHandle(NULL);
     handle->number_of_hooks = 0;
 #ifdef _M_X64
@@ -19,7 +24,7 @@ bool HTPInit(HTPHandle* handle)
 
     // Initializing lock
     LockInit(&handle->rlock);
-    return true;
+    return handle;
 }
 
 /**
@@ -35,5 +40,20 @@ bool HTPClose(HTPHandle* handle)
         DBGMSG("RemoveAllHooks failed\n");
         return false;
     }
+    delete handle;
     return true;
+}
+
+/**
+ * Get the process image base
+ * \return process image base
+ */
+uintptr_t HTPGetImageBase(HTPHandle* handle)
+{
+    return handle->image_base;
+}
+
+size_t HTPGetNumberOfHooks(HTPHandle* handle)
+{
+    return handle->number_of_hooks;
 }

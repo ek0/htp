@@ -1,5 +1,6 @@
 
-#include "htp.h"
+//#include "htp.h"
+#include "htp_internal.h"
 #include "trampoline.h"
 
 #include <windows.h> // TODO: Add guards if not windows?
