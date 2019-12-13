@@ -1,3 +1,5 @@
 cmake64/
 cmake/
 .vscode/
+out/
+.vs/
