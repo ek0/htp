@@ -22,9 +22,9 @@ struct HTPReturnTrampoline
 
 struct HTPTrampoline
 {
-    char context_init[31]; // Saving registers and initializing the HTPContext
+    char context_init[38]; // Saving registers and initializing the HTPContext
     char call_instruction[6];
-    char context_cleanup[28];
+    char context_cleanup[31];
     char saved_opcodes[20];
     char jmp_instruction[6];
     uintptr_t hook_address;

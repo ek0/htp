@@ -35,7 +35,7 @@ struct HTPHandle* HTPInit()
 bool HTPClose(HTPHandle* handle)
 {
     // Deallocating all arrays.
-    if(RemoveAllInlineHooks(handle) == false)
+    if (RemoveAllInlineHooks(handle) == false)
     {
         DBGMSG("RemoveAllHooks failed\n");
         return false;
