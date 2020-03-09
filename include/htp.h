@@ -67,5 +67,6 @@ bool HTP_EXPORT RemoveAllInlineHooks(HTPHandle* handle);
 /* Utility function */
 uintptr_t HTP_EXPORT HTPGetImageBase(HTPHandle* handle);
 size_t    HTP_EXPORT HTPGetNumberOfHooks(HTPHandle* handle);
+uintptr_t HTP_EXPORT HTPGetCurrentFunctionAddress(HTPHandle* handle, uintptr_t hook_address);
 
 #endif // _HTP_H_
