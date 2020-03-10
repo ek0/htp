@@ -61,11 +61,11 @@ size_t HTPGetNumberOfHooks(HTPHandle* handle)
 uintptr_t HTPGetCurrentFunctionAddress(HTPHandle* handle, uintptr_t hook_address)
 {
     // Careful, your hook needs to be able to access the handle ptr.
-    for(auto& h : handle->hook_list)
+    for(auto h : handle->hook_list)
     {
         // Address of the hook should be accessible from within the hook.
         // This is not optimal, but we'll make do until refactoring.
-        if(h->hook_address == hook_address)
+        if(h->original_hook_address == hook_address)
         {
             return h->original_function_address;
         }

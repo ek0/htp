@@ -257,6 +257,8 @@ bool SetupInlineHook(HTPHandle *handle, uintptr_t target_address, HTPHookProc ho
     // the jump will be resolved or not. We need to save the toplevel address.
     // i.e: The one without the redirection resolved.
     hook->original_function_address = target_address;
+    // Saving the original hook address specified by the user before resolving the jmps
+    hook->original_hook_address = reinterpret_cast<uintptr_t>(hook_address);
     // If the targeted address starts with a JMP instruction...
     while(ResolveIndirectJmp(handle, target_address, &next_address))
     {

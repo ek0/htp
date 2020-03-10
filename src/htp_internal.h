@@ -19,6 +19,8 @@ struct HTPHook
     uintptr_t      relay_address;              // relay stub address (64bits only);
 #endif
     uintptr_t      original_function_address;  // original function address
+    uintptr_t      original_hook_address;      // address specified by the user, can differ from hook address because of
+                                               // how we handle the ILT for example.
     uintptr_t      hook_address;               // hooked function address, can differ from function address
     size_t         number_of_opcodes;          // size of the saved instructions
     bool           is_active;                  // hook is enabled
