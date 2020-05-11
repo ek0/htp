@@ -1,3 +1,7 @@
 cmake64/
+cmake32/
 cmake/
 .vscode/
+out/
+.vs/
+CMakeSettings.json

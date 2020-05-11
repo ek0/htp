@@ -109,8 +109,8 @@ void MyTargetFunction(void)
 
 int main(int argc, char** argv)
 {
-    HTPHandle handle;
-    HTPInit(&handle);
+    HTPHandle *handle;
+    handle = HTPInit();
     assert(TargetFunction0(2) == 8);
     assert(TargetFunction1(2) == 4);
     assert(TargetFunction2(2) == 4);
@@ -120,15 +120,15 @@ int main(int argc, char** argv)
     assert(TargetFunction6(2) == 4);
     assert(TargetFunction7(2) == 4);
     assert(TargetFunction8(2) == 4);
-    assert(SetupInlineHook(&handle, (uintptr_t)TargetFunction0, NewFunction));
-    assert(SetupInlineHook(&handle, (uintptr_t)TargetFunction1, NewFunction));
-    assert(SetupInlineHook(&handle, (uintptr_t)TargetFunction2, NewFunction));
-    assert(SetupInlineHook(&handle, (uintptr_t)TargetFunction3, NewFunction));
-    assert(SetupInlineHook(&handle, (uintptr_t)TargetFunction4, NewFunction));
-    assert(SetupInlineHook(&handle, (uintptr_t)TargetFunction5, NewFunction));
-    assert(SetupInlineHook(&handle, (uintptr_t)TargetFunction6, NewFunction));
-    assert(SetupInlineHook(&handle, (uintptr_t)TargetFunction7, NewFunction));
-    assert(SetupInlineHook(&handle, (uintptr_t)TargetFunction8, NewFunction));
+    assert(SetupInlineHook(handle, (uintptr_t)TargetFunction0, NewFunction));
+    assert(SetupInlineHook(handle, (uintptr_t)TargetFunction1, NewFunction));
+    assert(SetupInlineHook(handle, (uintptr_t)TargetFunction2, NewFunction));
+    assert(SetupInlineHook(handle, (uintptr_t)TargetFunction3, NewFunction));
+    assert(SetupInlineHook(handle, (uintptr_t)TargetFunction4, NewFunction));
+    assert(SetupInlineHook(handle, (uintptr_t)TargetFunction5, NewFunction));
+    assert(SetupInlineHook(handle, (uintptr_t)TargetFunction6, NewFunction));
+    assert(SetupInlineHook(handle, (uintptr_t)TargetFunction7, NewFunction));
+    assert(SetupInlineHook(handle, (uintptr_t)TargetFunction8, NewFunction));
     assert(TargetFunction0(2) == 8);
     assert(TargetFunction1(2) == 8);
     assert(TargetFunction2(2) == 8);
@@ -138,15 +138,15 @@ int main(int argc, char** argv)
     assert(TargetFunction6(2) == 8);
     assert(TargetFunction7(2) == 8);
     assert(TargetFunction8(2) == 8);
-    assert(RemoveInlineHook(&handle, (uintptr_t)TargetFunction0));
-    assert(RemoveInlineHook(&handle, (uintptr_t)TargetFunction1));
-    assert(RemoveInlineHook(&handle, (uintptr_t)TargetFunction2));
-    assert(RemoveInlineHook(&handle, (uintptr_t)TargetFunction3));
-    assert(RemoveInlineHook(&handle, (uintptr_t)TargetFunction4));
-    assert(RemoveInlineHook(&handle, (uintptr_t)TargetFunction5));
-    assert(RemoveInlineHook(&handle, (uintptr_t)TargetFunction6));
-    assert(RemoveInlineHook(&handle, (uintptr_t)TargetFunction7));
-    assert(RemoveInlineHook(&handle, (uintptr_t)TargetFunction8));
+    assert(RemoveInlineHook(handle, (uintptr_t)TargetFunction0));
+    assert(RemoveInlineHook(handle, (uintptr_t)TargetFunction1));
+    assert(RemoveInlineHook(handle, (uintptr_t)TargetFunction2));
+    assert(RemoveInlineHook(handle, (uintptr_t)TargetFunction3));
+    assert(RemoveInlineHook(handle, (uintptr_t)TargetFunction4));
+    assert(RemoveInlineHook(handle, (uintptr_t)TargetFunction5));
+    assert(RemoveInlineHook(handle, (uintptr_t)TargetFunction6));
+    assert(RemoveInlineHook(handle, (uintptr_t)TargetFunction7));
+    assert(RemoveInlineHook(handle, (uintptr_t)TargetFunction8));
     assert(TargetFunction0(2) == 8);
     assert(TargetFunction1(2) == 4);
     assert(TargetFunction2(2) == 4);
@@ -159,8 +159,8 @@ int main(int argc, char** argv)
 
     puts("PostHook");
     assert(TargetFunction0(2) == 8);
-    assert(SetupInlineHook(&handle, (uintptr_t)TargetFunction0, NewFunction, PostHook));
-    assert(SetupInlineHook(&handle, (uintptr_t)TargetFunction1, NewFunction, PostHook));
+    assert(SetupInlineHook(handle, (uintptr_t)TargetFunction0, NewFunction, PostHook));
+    assert(SetupInlineHook(handle, (uintptr_t)TargetFunction1, NewFunction, PostHook));
     for(size_t i = 0; i < 10000; ++i)
         assert(TargetFunction0(4) == 10);
 
@@ -179,9 +179,9 @@ int main(int argc, char** argv)
     }
 
     puts("\nSetupInlineHook API");
-    SetupInlineHook(&handle, "kernel32.dll", "GetModuleHandleA", GetModuleHandleHook, GetModuleHandlePostHook);
+    SetupInlineHook(handle, "kernel32.dll", "GetModuleHandleA", GetModuleHandleHook, GetModuleHandlePostHook);
     HMODULE module = GetModuleHandleA("kernel32");
     printf("Module: %#p\n", module);
-    HTPClose(&handle);
+    HTPClose(handle);
     return 0;
 }

@@ -142,7 +142,10 @@ push    r14
 push    r15
 mov     rcx, rsp
 sub     rsp, 28h
+mov     rbx, rsp
+and     rsp, 0FFFFFFFFFFFFFFF0h
 call    qword ptr [offset HookProc]
+mov     rsp, rbx
 add     rsp, 28h
 pop     r15
 pop     r14
