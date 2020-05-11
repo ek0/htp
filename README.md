@@ -75,7 +75,7 @@ void HookLoadLibraryA(HTPContext* ctx)
 int main(int argc, char** argv)
 {
 	htp = HTPInit();
-	if(!SetupInlineHook("kernel32", "LoadLibraryA", HookLoadLibraryA))
+	if(!SetupInlineHook(htp, "kernel32", "LoadLibraryA", HookLoadLibraryA))
 	{
 		// Handle Error;
 	}
@@ -106,7 +106,7 @@ int main(int argc, char** argv)
 {
 	htp = HTPInit();
 	// 0x1234567 is the fictional function RVA.
-	if(!SetupInlineHook(HTPGetImageBase(htp) + 0x1234567, PreHookRandomFunction, PostHookRandomFunction))
+	if(!SetupInlineHook(htp, HTPGetImageBase(htp) + 0x1234567, PreHookRandomFunction, PostHookRandomFunction))
 	{
 		// Handle Error;
 	}
